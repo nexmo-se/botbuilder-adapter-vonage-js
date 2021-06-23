@@ -1,6 +1,6 @@
 {
   "name": "botbuilder-adapter-vonage-js",
-  "version": "1.0.7",
+  "version": "1.0.9",
   "description": "Middleware Adapter to Microsoft Bot Frameworks' Botkit or BotBuilder to Vonage Messages API",
   "main": "index.js",
   "scripts": {

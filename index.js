@@ -9,11 +9,15 @@ const {
   ConversationReference,
   ResourceResponse 
 } = require("botbuilder")
-const { CredentialsObject } = require("@vonage/server-sdk")
+const Debug = require("debug");
+const debug = Debug("botkit:vonage");
+const promisify = require("util");
 const Vonage = require("@vonage/server-sdk")
+const CredentialsObject = require("@vonage/server-sdk")
 
-class VonageBotWorker extends Botworker {
-  constructor() {
+class VonageBotWorker extends BotWorker {
+  constructor(Vonage) {
+    this.api = Vonage;
   }
   async startConversationWithUser(userId) {
     return this.changeContext({
@@ -24,10 +28,15 @@ class VonageBotWorker extends Botworker {
     })
   }
 }
-class VonageCredentialsObject extends CredentialsObject {}
-class VonageAdapter extends BotAdapter {
-  constructor(config) {
-    this.api = Vonage;
+class VonageCredentialsObject extends CredentialsObject {
+  constructor(CredentialsObject) {
+    this.credentials = CredentialsObject
+  }
+}
+
+module.exports = class VonageAdapter extends BotAdapter {
+  constructor(VonageCredentialsObject, config) {
+    super()
     this.name = "Vonage Adapter";
     this.middlewares = null;
     this.botkit_worker = VonageBotWorker
@@ -36,12 +45,8 @@ class VonageAdapter extends BotAdapter {
     this.to_number = config.to_number
     this.from_number = config.from_number
     this.enable_incomplete = config.enable_incomplete
-    // this.apiKey = config.apiKey
-    // this.apiSecret = config.apiSecret
-    // this.applicationId = config.applicationId
-    // this.privateKey = config.privateKey
   }
-  get validation() {
+  validation() {
     if (!this.credentials.apiKey || !this.credentials.applicationId) {
       const err =
         "Either apiKey or applicationId is required part of the configuration";
@@ -112,7 +117,7 @@ class VonageAdapter extends BotAdapter {
    * @param activity A BotBuilder Activity object
    * @returns a Vonage message object with {body, from, to}
    */
-   get activityToVonage(activity) {
+   activityToVonage(activity) {
     const message = {
       message: {
         content: {
@@ -132,7 +137,7 @@ class VonageAdapter extends BotAdapter {
    * @param context A TurnContext representing the current incoming message and environment. (Not used)
    * @param activities An array of outgoing activities to be sent back to the messaging API.
    */
-   async get sendActivities( context, activities ) {
+   async sendActivities( context, activities ) {
     const sendMessageOverChannel = promisify(this.api.channel.send);
 
     const responses = [];

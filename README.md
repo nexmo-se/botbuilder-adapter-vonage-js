@@ -232,15 +232,18 @@ Botkit is released under the [MIT Open Source license](https://github.com/howdya
 ## Developing and Testing NPM locally
 
 ```js
-// In module directory, create Link to test locally without having to publish
+// In NPM Package directory, Link the NPM package to allow local testing (instead of npm publish)
 npm link
 
 // In test directory
+// Link the npm module
+npm link botbuilder-adapter-vonage-js
+
+// Now install the local NPM Package
 npm i /<PATH>/botbuilder-adapter-vonage-js
 // npm uninstall /Users/kittphi/Repos/botbuilder-adapter-vonage-js
 E.G. npm i /Users/kittphi/Repos/botbuilder-adapter-vonage-js
 
-// Link the npm module
-npm link botbuilder-adapter-vonage-js
-
+// to update the NPM package
+npm update /Users/kittphi/Repos/botbuilder-adapter-vonage-js
 ```
