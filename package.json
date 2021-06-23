@@ -1,0 +1,50 @@
+{
+  "name": "botbuilder-adapter-vonage-js",
+  "version": "1.0.7",
+  "description": "Middleware Adapter to Microsoft Bot Frameworks' Botkit or BotBuilder to Vonage Messages API",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nexmo-se/botbuilder-adapter-vonage-js.git"
+  },
+  "author": "Kitt Phi <Kitt.Phi@Vonage.com>",
+  "license": "Vonage Inc",
+  "keywords": [
+    "vonage",
+    "nexmo",
+    "tokbox",
+    "chat",
+    "sms",
+    "vonage sms",
+    "texting",
+    "txting",
+    "botkit",
+    "botbuilder",
+    "botframework",
+    "bots",
+    "chatbots",
+    "azure"
+  ],
+  "bugs": {
+    "url": "https://github.com/nexmo-se/botbuilder-adapter-vonage-js/issues"
+  },
+  "homepage": "https://github.com/nexmo-se/botbuilder-adapter-vonage-js#readme",
+  "dependencies": {
+    "@vonage/server-sdk": "^2.10.7-beta-2",
+    "botbuilder": "^4.13.5",
+    "botkit": "^4.10.0",
+    "debug": "^4.3.1"
+  },
+  "devDependencies": {
+    "@types/debug": "^4.1.5",
+    "eslint": "^7.29.0",
+    "eslint-config-standard": "^14.1.1",
+    "eslint-plugin-import": "^2.20.0",
+    "eslint-plugin-node": "^11.1.0",
+    "eslint-plugin-promise": "^4.2.1",
+    "eslint-plugin-standard": "^4.0.1"
+  }
+}
