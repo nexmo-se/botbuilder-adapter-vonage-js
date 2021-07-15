@@ -15,7 +15,18 @@ const promisify = require("util");
 const Vonage = require("@vonage/server-sdk")
 const CredentialsObject = require("@vonage/server-sdk")
 
+/**
+ * This is a specialized version of [Botkit's core BotWorker class](core.md#BotWorker) that includes additional methods for interacting with Vonage.
+ * It includes all functionality from the base class, as well as the extension methods below.
+ *
+ * When using the VonageAdapter with Botkit, all `bot` objects passed to handler functions will include these extensions.
+ */
 class VonageBotWorker extends BotWorker {
+  /**
+     * A copy of the Vonage Message API client giving access to `let res = await bot.api.callAPI(path, method, parameters);`
+     * 
+     * `getConfig()` is used to get the config, which contains the options passed to the constructor.
+     */
   constructor(Vonage) {
     this.api = Vonage;
   }
@@ -23,11 +34,14 @@ class VonageBotWorker extends BotWorker {
     return this.changeContext({
       channelId: "vonage",
       conversation: {id: userId},
-      bot: { id: this.controller.getConfig("vonage_number"), name: "bot" },
+      bot: { id: this.controller.getConfig("from_number"), name: "bot" },
       user: { id: userId }
     })
   }
 }
+/**
+ *
+ */
 class VonageCredentialsObject extends CredentialsObject {
   constructor(CredentialsObject) {
     this.credentials = CredentialsObject
@@ -113,20 +127,26 @@ module.exports = class VonageAdapter extends BotAdapter {
     };
   }
   /**
-   * Converts a BotBuilder Activity Object into an outbound ready message for the Vonage Messages API.
+   * Converts a BotBuilder Activity Object into an outgoing Vonage Messages API.
    * @param activity A BotBuilder Activity object
-   * @returns a Vonage message object with {body, from, to}
+   * @returns a Vonage Messages API object 
    */
    activityToVonage(activity) {
-    const message = {
-      message: {
-        content: {
-          text: activity.channelData.message.text
-        }
-      },
-      from: activity.channelData.from.number,
-      to: activity.channelData.to.number,
-    };
+    // const message = {
+    //   message: {
+    //     content: {
+    //       text: activity.channelData.message.text
+    //     }
+    //   },
+    //   from: activity.channelData.from.number,
+    //   to: activity.channelData.to.number,
+    // };
+  
+    const message = (
+      { type: "sms", number: activity.channelData.from.number },  // REVERSED NUMBERS
+      { type: "sms", number: activity.channelData.to.number },    // REVERSED NUMBERS
+      { content: { type: "text", text: activity.channelData.message.text, } }
+    );
 
     return message;
   } // END activityToVonage
@@ -138,8 +158,7 @@ module.exports = class VonageAdapter extends BotAdapter {
    * @param activities An array of outgoing activities to be sent back to the messaging API.
    */
    async sendActivities( context, activities ) {
-    const sendMessageOverChannel = promisify(this.api.channel.send);
-
+    // const sendMessageOverChannel = promisify(this.api.channel.send);
     const responses = [];
     for (let a = 0; a < activities.length; a++) {
       const activity = activities[a];
@@ -148,21 +167,28 @@ module.exports = class VonageAdapter extends BotAdapter {
         activity.type === ActivityTypes.Event
       ) {
         const message = this.activityToVonage(activity);
+        debug("message: ", message)
         try {
-          const { message_uuid } = await sendMessageOverChannel(
-            activity.channelData.to.number,
-            activity.channelData.from.number,
-            message
-          );
-          responses.push({ id: message_uuid });
+          // const { message_uuid } = await sendMessageOverChannel(message);
+          // // const { message_uuid } = await sendMessageOverChannel(
+          // //   activity.channelData.to.number,
+          // //   activity.channelData.from.number,
+          // //   message
+          // // );
+          const res = await this.api.channel.send(message)
+          if (res) {
+            responses.push({ id: res.message_uuid });
+          // const { message_uuid } = await this.api.channel.send(message);
+          // responses.push({ id: message_uuid });
+          // debug("message_uuid: ", message_uuid)
+          } else {
+            debub("RESPONSE FROM VONAGE > ", res)
+          }
         } catch (err) {
-          debug("Error sending message over channel", err);
+          debug("Error sending activity to Vonage", err);
         }
       } else {
-        debug(
-          "Unknown message type encountered in sendActivities: ",
-          activity.type
-        );
+        debug("Unknown message type encountered in sendActivities: ", activity.type);
       }
     }
     return responses;
