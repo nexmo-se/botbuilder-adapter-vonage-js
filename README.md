@@ -10,14 +10,11 @@ You'll neeed to have a Vonage API account, a Vonage Virtual Number, install then
 
 VonageAdapter provides a translation layer to the Microsoft Bot Framework, so that bot developers can connect to Vonage Messages API via using the [Vonage Server SDk Client](https://github.com/Vonage/vonage-node-sdk).
 
-
 ## Node.js Module
 
 This is a npm module in TypeScript, which is "importable" in JavaScript and TypeScript
 
-
 ## Install Package
-
 
 Most npm modules come without a Type definition, so TypeScript developers will have to run an additional `npm i @types/<module_name> -D` command to be able to use the npm module
 
@@ -30,7 +27,7 @@ npm install --save botbuilder-adapter-vonage
 Import the adapter class into your code:
 
 ```javascript
-const { VonageAdapter } = require("botbuilder-adapter-vonage");
+const VonageAdapter = require('botbuilder-adapter-vonage-js');
 ```
 
 ## Quick start Demo
@@ -43,63 +40,54 @@ Use the VonageAdapter to connect to the Microsoft Bot Framework via either [Botk
 
 ```javascript
 // webhook-server.js
-"use strict";
-require("dotenv").config();
-const express = require("express");
-const bodyParser = require("body-parser");
+'use strict';
+require('dotenv').config();
+const express = require('express');
 const app = express();
-const port = 3000;
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-const { VonageAdapter } = require("botbuilder-adapter-vonage");
-const { Botkit } = require("botkit");
+const VonageAdapter = require('botbuilder-adapter-vonage-js');
+const { Botkit } = require('botkit');
 
-const TO_NUMBER = process.env.TO_NUMBER;
-const FROM_NUMBER = process.env.FROM_NUMBER;
-const VONAGE_API_KEY = process.env.VONAGE_API_KEY;
-const VONAGE_API_SECRET = process.env.VONAGE_API_SECRET;
-const VONAGE_APPLICATION_ID = process.env.VONAGE_APPLICATION_ID;
-const VONAGE_APPLICATION_PRIVATE_KEY_PATH =
-  process.env.VONAGE_APPLICATION_PRIVATE_KEY_PATH;
+const creds = {
+  apiKey: process.env.VONAGE_API_KEY,
+  apiSecret: process.env.VONAGE_API_SECRET,
+  applicationId: process.env.VONAGE_APPLICATION_ID,
+  privateKey: process.env.VONAGE_APPLICATION_PRIVATE_KEY_PATH,
+};
+const config = {
+  to_number: process.env.TO_NUMBER,
+  from_number: process.env.FROM_NUMBER,
+  // enable_incomplete: true
+};
 
-const adapter = new VonageAdapter({
-  to_number: TO_NUMBER,
-  from_number: FROM_NUMBER,
-  apiKey: VONAGE_API_KEY,
-  apiSecret: VONAGE_API_SECRET,
-  applicationId: VONAGE_APPLICATION_ID,
-  privateKey: VONAGE_APPLICATION_PRIVATE_KEY_PATH,
-});
+const adapter = new VonageAdapter(creds, config);
 
 const controller = new Botkit({
-  webhook_uri: '/webhooks/inbound-message',
+  webhook_uri: '/webhooks/inbound',
   adapter,
 });
 
-controller.hears(".*", "message", async (bot, message) => {
-  await bot.reply(message, "I heard: " + message.text);
+controller.hears('.*', 'message', async (bot, message) => {
+  await bot.reply(message, 'I heard: ' + message.text);
 });
 
-controller.on("event", async (bot, message) => {
-  await bot.reply(message, "I received an event of type " + message.type);
+controller.on('event', async (bot, message) => {
+  await bot.reply(message, 'I received an event of type ' + message.type);
 });
 
-app.post("/webhooks/message-status", (req, res) => {
+app.post('/webhooks/status', (req, res) => {
   console.log(req.body);
   res.status(200).end();
 });
 
-app.post("/webhooks/dir", (req, res) => {
+app.post('/webhooks/dir', (req, res) => {
   res.status(200).end();
-});
-
-app.listen(port, () => {
-  console.log(`🌏 Server running at http://localhost:${port}`);
 });
 ```
 
-Run ngrok, then set the new ngrok URL to your Vonage SMS settings, Virtual number and Vonage Application.
+Run ngrok, then set your Vonage Application to the new Ngrok URL.
 
 ```js
 ngrok http 3000
@@ -120,22 +108,27 @@ Developers can then bind to Botkit's event emitting system using `controller.on`
 [A full description of the VonageAdapter options and example code can be found in the class reference docs.](../docs/reference/hangouts.md#create-a-new-VonageAdapter)
 
 ```javascript
-const adapter = new VonageAdapter({
+const creds = {
+  apiKey: process.env.VONAGE_API_KEY,
+  apiSecret: process.env.VONAGE_API_SECRET,
+  applicationId: process.env.VONAGE_APPLICATION_ID,
+  privateKey: process.env.VONAGE_APPLICATION_PRIVATE_KEY_PATH,
+};
+const config = {
   to_number: process.env.TO_NUMBER,
   from_number: process.env.FROM_NUMBER,
-  apiKey: process.env.API_KEY,
-  apiSecret: process.env.API_SECRET,
-  applicationId: process.env.APP_ID,
-  privateKey: process.env.PRIVATE_KEY_PATH,
-});
+  // enable_incomplete: true
+};
+
+const adapter = new VonageAdapter(creds, config);
 
 const controller = new Botkit({
-  webhook_uri: '/webhooks/inbound-message',
+  webhook_uri: '/webhooks/inbound',
   adapter,
 });
 
-controller.on("message", async (bot, message) => {
-  await bot.reply(message, "I heard a message!");
+controller.on('message', async (bot, message) => {
+  await bot.reply(message, 'I heard a message!');
 });
 ```
 
@@ -146,21 +139,26 @@ Alternately, developers may choose to use `VonageAdapter` with BotBuilder. With 
 **Example 2:** VonageAdapter used with Botbuilder
 
 ```javascript
-const adapter = new VonageAdapter({
+const creds = {
+  apiKey: process.env.VONAGE_API_KEY,
+  apiSecret: process.env.VONAGE_API_SECRET,
+  applicationId: process.env.VONAGE_APPLICATION_ID,
+  privateKey: process.env.VONAGE_APPLICATION_PRIVATE_KEY_PATH,
+};
+const config = {
   to_number: process.env.TO_NUMBER,
   from_number: process.env.FROM_NUMBER,
-  apiKey: process.env.API_KEY,
-  apiSecret: process.env.API_SECRET,
-  applicationId: process.env.APP_ID,
-  privateKey: process.env.PRIVATE_KEY_PATH,
-});
+  // enable_incomplete: true
+};
+
+const adapter = new VonageAdapter(creds, config);
 
 const server = restify.createServer();
 server.use(restify.plugins.bodyParser());
 
-server.post("/webhooks/inbound-message", (req, res) => {
+server.post('/webhooks/inbound', (req, res) => {
   adapter.processActivity(req, res, async (context) => {
-    await context.sendActivity("I heard a message!");
+    await context.sendActivity('I heard a message!');
   });
 });
 ```
@@ -172,11 +170,11 @@ server.post("/webhooks/inbound-message", (req, res) => {
 
 ## Event List
 
-Botkit will emit the following events: 
+Botkit will emit the following events:
 
-| Event | Description
-|--- |---
-| message | a message from a user
+| Event   | Description           |
+| ------- | --------------------- |
+| message | a message from a user |
 
 ## Calling Vonage Message APIs
 
